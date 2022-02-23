@@ -1,22 +1,65 @@
 ﻿using Discord.Commands;
-
+using HomeWorkJSON;
+using RestSharp;
+using HomeWorkJSON.ApiObjects;
+using Discord;
 
 namespace HomeWorkJSON
 {
 	// Create a module with no prefix
 	public class InfoModule : ModuleBase<SocketCommandContext>
 	{
+		ApiClient client = new ApiClient("https://opentdb.com/");
+
 		// ~say hello world -> hello world
 		[Command("say")]
 		[Summary("Echoes a message.")]
 		public Task SayAsync([Remainder][Summary("The text to echo")] string echo)
 			=> ReplyAsync(echo);
 		
-		[Command("wypierdalaj")]
-		public async Task Square([Remainder] int number)
+		[Command("trivia")]
+		public async Task GetTriviaFromTriviaApi()
         {
-			await ReplyAsync((number * number).ToString());
-        }
+			RestResponse response = await client.GetResponseAsync("");
+			TriviaApiObjectList x = client.GetTriviaApiObjectFromJsonResponse(response.Content);
+			x.ApiObjectList[0].PopulateAllAnswersList();
+			x.ApiObjectList[0].AllAnswers.Shuffle();
+
+			var embed = new EmbedBuilder();
+			// Or with methods
+			embed
+				.WithAuthor($"Category: {x.ApiObjectList[0].Category}")
+				.WithTitle($"{x.ApiObjectList[0].Question}")
+				.WithCurrentTimestamp();
+			switch(x.ApiObjectList[0].Difficulty)
+            {
+				case "easy":
+					embed.WithColor(Color.Green);
+					break;
+				case "medium":
+					embed.WithColor(Color.Orange);
+					break;
+				case "hard":
+					embed.WithColor(Color.Red);
+					break;
+            }
+
+			int asciiLetter = 97;
+			foreach (var y in x.ApiObjectList[0].AllAnswers)
+            {
+				embed.AddField(Convert.ToChar(asciiLetter++).ToString() + ")", y);
+            } // "Field value. I also support [hyperlink markdown](https://example.com)!")
+			embed.AddField($"Correct answer:",
+				$"||{Convert.ToChar(97 + x.ApiObjectList[0].AllAnswers.FindIndex(a => a.Contains(x.ApiObjectList[0].CorrectAnswer)))}||");
+
+			//Your embed needs to be built before it is able to be sent
+			await ReplyAsync(embed: embed.Build());
+
+
+
+
+		//	await ReplyAsync(response.Content);
+		}
 
 		// ReplyAsync is a method on ModuleBase 
 	}

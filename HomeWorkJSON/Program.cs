@@ -4,7 +4,6 @@ using Discord.Commands;
 using HomeWorkJSON;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
 using Newtonsoft.Json;
 
 public class Program
@@ -39,7 +38,7 @@ public class Program
             LogLevel = LogSeverity.Debug
         });
 
-        ConfigObject = JsonConvert.DeserializeObject<ConfigObject>(File.ReadAllText("test.txt"));
+        ConfigObject = JsonConvert.DeserializeObject<ConfigObject>(File.ReadAllText("Secret/botToken.json"));
 
         Commands = new CommandService(new CommandServiceConfig
         {
@@ -93,9 +92,3 @@ public class ConfigObject
     public string botToken { get; set; }
     public string game { get; set; }    
 }
-
-/*
-var client = new RestClient("https://restcountries.com/v3.1");
-var request = new RestRequest("all");
-var response = await client.GetAsync(request);
-*/
